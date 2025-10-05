@@ -148,6 +148,11 @@
       </div>
       
       <div class="info-card">
+        <h3>⚽ Touches</h3>
+        <p>Number of times a player touches the ball. Shown by bubble size - larger bubbles indicate more involvement in the game.</p>
+      </div>
+      
+      <div class="info-card">
         <h3>📈 Per 90 Stats</h3>
         <p>All metrics are normalized per 90 minutes of play, allowing fair comparison between players with different playing time.</p>
       </div>
@@ -183,11 +188,13 @@
         { "calculate": "toNumber(datum.Expected_npxG)", "as": "npxG" },
         { "calculate": "toNumber(datum.Expected_xAG)", "as": "xAG" },
         { "calculate": "toNumber(datum.SCA_SCA)", "as": "KeyPasses" },
+        { "calculate": "toNumber(datum.Performance_Touches)", "as": "Touches" },
         {
           "aggregate": [
             { "op": "sum", "field": "npxG", "as": "total_npxG" },
             { "op": "sum", "field": "xAG", "as": "total_xAG" },
             { "op": "sum", "field": "KeyPasses", "as": "total_key_passes" },
+            { "op": "sum", "field": "Touches", "as": "total_touches" },
             { "op": "sum", "field": "Minutes", "as": "total_minutes" }
           ],
           "groupby": ["Player_Name"]
@@ -200,13 +207,16 @@
         {
           "calculate": "datum.total_key_passes * 90 / datum.total_minutes",
           "as": "keyPassesPer90"
+        },
+        {
+          "calculate": "datum.total_touches * 90 / datum.total_minutes",
+          "as": "touchesPer90"
         }
       ],
       "layer": [
         {
           "mark": { 
             "type": "circle", 
-            "size": 450, 
             "opacity": 0.75,
             "filled": true,
             "color": "#667eea",
@@ -228,10 +238,18 @@
               "scale": { "zero": false },
               "axis": { "grid": true, "gridOpacity": 0.3, "tickCount": 8 }
             },
+            "size": {
+              "field": "touchesPer90",
+              "type": "quantitative",
+              "title": "Touches per 90",
+              "scale": { "range": [200, 800] },
+              "legend": { "orient": "right" }
+            },
             "tooltip": [
               { "field": "Player_Name", "title": "Player" },
               { "field": "expectedContributionPer90", "title": "Expected (npxG+xAG) per 90", "format": ".3f" },
               { "field": "keyPassesPer90", "title": "Shot-Creating Action per 90", "format": ".2f" },
+              { "field": "touchesPer90", "title": "Touches per 90", "format": ".2f" },
               { "field": "total_minutes", "title": "Total Minutes", "format": ".0f" }
             ]
           }
