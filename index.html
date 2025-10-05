@@ -126,7 +126,7 @@
   <div class="container">
     <header>
       <h1>⚽ Player Performance Analysis</h1>
-      <p class="subtitle">2025-2026 Season • Expected Contribution vs Key Passes</p>
+      <p class="subtitle">2025-2026 Season • Expected Contribution vs Shot-Creating Action</p>
     </header>
 
     <div class="card">
@@ -143,7 +143,7 @@
       </div>
       
       <div class="info-card">
-        <h3>🎯 Key Passes</h3>
+        <h3>🎯 Shot-Creating Action</h3>
         <p>Passes that directly lead to a shot. A higher rate indicates creative playmaking ability and offensive contribution.</p>
       </div>
       
@@ -162,7 +162,7 @@
     var spec = {
       "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
       "title": {
-        "text": "Expected Contribution vs Key Passes per 90 Minutes",
+        "text": "Expected Contribution vs Shot-Creating Action per 90 Minutes",
         "fontSize": 18,
         "anchor": "middle",
         "fontWeight": 600,
@@ -217,7 +217,7 @@
             "x": {
               "field": "keyPassesPer90",
               "type": "quantitative",
-              "title": "Key Passes per 90 Minutes",
+              "title": "Shot-Creating Action per 90 Minutes",
               "scale": { "zero": false },
               "axis": { "grid": true, "gridOpacity": 0.3, "tickCount": 8 }
             },
@@ -231,7 +231,7 @@
             "tooltip": [
               { "field": "Player_Name", "title": "Player" },
               { "field": "expectedContributionPer90", "title": "Expected (npxG+xAG) per 90", "format": ".3f" },
-              { "field": "keyPassesPer90", "title": "Key Passes per 90", "format": ".2f" },
+              { "field": "keyPassesPer90", "title": "Shot-Creating Action per 90", "format": ".2f" },
               { "field": "total_minutes", "title": "Total Minutes", "format": ".0f" }
             ]
           }
