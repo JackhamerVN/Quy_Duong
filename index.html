@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Player Performance Analysis</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    #vis {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .info-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .info-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .info-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    .info-card p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      opacity: 0.95;
+    }
+
+    footer {
+      text-align: center;
+      color: white;
+      padding: 20px;
+      margin-top: 20px;
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .card {
+        padding: 20px;
+      }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚽ Player Performance Analysis</h1>
+      <p class="subtitle">2025-2026 Season • Expected Contribution vs Key Passes</p>
+    </header>
+
+    <div class="card">
+      <div id="vis">
+        <div class="loading">Loading visualization...</div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-card">
+        <h3>📊 About the Metrics</h3>
+        <p><strong>npxG:</strong> Non-penalty Expected Goals - likelihood of scoring from shots.<br>
+        <strong>xAG:</strong> Expected Assisted Goals - quality of chances created for teammates.</p>
+      </div>
+      
+      <div class="info-card">
+        <h3>🎯 Key Passes</h3>
+        <p>Passes that directly lead to a shot. A higher rate indicates creative playmaking ability and offensive contribution.</p>
+      </div>
+      
+      <div class="info-card">
+        <h3>📈 Per 90 Stats</h3>
+        <p>All metrics are normalized per 90 minutes of play, allowing fair comparison between players with different playing time.</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>Data visualization powered by Vega-Lite • Season 2025-2026</p>
+    </footer>
+  </div>
+
+  <script type="text/javascript">
+    var spec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": {
+        "text": "Expected Contribution vs Key Passes per 90 Minutes",
+        "fontSize": 18,
+        "anchor": "middle",
+        "fontWeight": 600,
+        "color": "#333"
+      },
+      "width": "container",
+      "height": 500,
+      "autosize": {
+        "type": "fit",
+        "contains": "padding"
+      },
+      "data": { 
+        "url": "https://raw.githubusercontent.com/JackhamerVN/Quy_Duong/main/combined_match_logs.csv",
+        "format": {"type": "csv"}
+      },
+      "transform": [
+        { "calculate": "toNumber(datum.Min)", "as": "Minutes" },
+        { "calculate": "toNumber(datum.Expected_npxG)", "as": "npxG" },
+        { "calculate": "toNumber(datum.Expected_xAG)", "as": "xAG" },
+        { "calculate": "toNumber(datum.SCA_SCA)", "as": "KeyPasses" },
+        {
+          "aggregate": [
+            { "op": "sum", "field": "npxG", "as": "total_npxG" },
+            { "op": "sum", "field": "xAG", "as": "total_xAG" },
+            { "op": "sum", "field": "KeyPasses", "as": "total_key_passes" },
+            { "op": "sum", "field": "Minutes", "as": "total_minutes" }
+          ],
+          "groupby": ["Player_Name"]
+        },
+        { "filter": "datum.total_minutes > 0" },
+        {
+          "calculate": "(datum.total_npxG + datum.total_xAG) * 90 / datum.total_minutes",
+          "as": "expectedContributionPer90"
+        },
+        {
+          "calculate": "datum.total_key_passes * 90 / datum.total_minutes",
+          "as": "keyPassesPer90"
+        }
+      ],
+      "layer": [
+        {
+          "mark": { 
+            "type": "circle", 
+            "size": 450, 
+            "opacity": 0.75,
+            "filled": true,
+            "color": "#667eea",
+            "stroke": "#764ba2",
+            "strokeWidth": 2
+          },
+          "encoding": {
+            "x": {
+              "field": "keyPassesPer90",
+              "type": "quantitative",
+              "title": "Key Passes per 90 Minutes",
+              "scale": { "zero": false },
+              "axis": { "grid": true, "gridOpacity": 0.3, "tickCount": 8 }
+            },
+            "y": {
+              "field": "expectedContributionPer90",
+              "type": "quantitative",
+              "title": "Expected npxG + xAG per 90 Minutes",
+              "scale": { "zero": false },
+              "axis": { "grid": true, "gridOpacity": 0.3, "tickCount": 8 }
+            },
+            "tooltip": [
+              { "field": "Player_Name", "title": "Player" },
+              { "field": "expectedContributionPer90", "title": "Expected (npxG+xAG) per 90", "format": ".3f" },
+              { "field": "keyPassesPer90", "title": "Key Passes per 90", "format": ".2f" },
+              { "field": "total_minutes", "title": "Total Minutes", "format": ".0f" }
+            ]
+          }
+        },
+        {
+          "mark": {
+            "type": "text",
+            "align": "left",
+            "dx": 10,
+            "dy": -10,
+            "fontSize": 11,
+            "fontWeight": 600
+          },
+          "encoding": {
+            "x": { "field": "keyPassesPer90", "type": "quantitative" },
+            "y": { "field": "expectedContributionPer90", "type": "quantitative" },
+            "text": { "field": "Player_Name", "type": "nominal" },
+            "color": { "value": "#333" },
+            "opacity": { "value": 0.9 }
+          }
+        }
+      ],
+      "config": { 
+        "view": { "stroke": "transparent" },
+        "axis": { 
+          "labelFontSize": 12, 
+          "titleFontSize": 13,
+          "titleFontWeight": 600
+        } 
+      }
+    };
+
+    vegaEmbed('#vis', spec, {
+      "actions": {
+        "export": true,
+        "source": false,
+        "editor": false
+      }
+    }).then(function(result) {
+      console.log("Visualization rendered successfully");
+    }).catch(function(error) {
+      document.getElementById('vis').innerHTML = '<div class="loading" style="color: #e74c3c;">Error loading visualization. Please ensure combined_match_logs.csv is in the same directory.</div>';
+      console.error(error);
+    });
+  </script>
+</body>
+</html>
